@@ -16,6 +16,13 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <Button
+            android:id="@+id/shareButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Поделиться файлом" />
+
         <TextView
             android:id="@+id/linksTextView"
             android:layout_width="match_parent"
