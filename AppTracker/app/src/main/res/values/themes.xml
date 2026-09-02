@@ -1,4 +1,0 @@
-<resources>
-    <style name="Theme.AppTracker" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
-    <style name="Theme.AppTracker.Transparent" parent="Theme.MaterialComponents.DayNight.Dialog" />
-</resources>
