@@ -8,20 +8,36 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
 
-// Ловит клик по ссылке Play Market (play.google.com, market.android.com, market://)
-// до того, как откроется сам Play Market, и спрашивает - сохранить или пропустить.
+// Работает как "браузер по умолчанию": ловит вообще все ссылки http/https.
+// Если это ссылка на Play Market - спрашивает "сохранить?".
+// Если это любая другая ссылка (обычный сайт) - молча пересылает в настоящий браузер.
 class LinkInterceptorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val uri: Uri? = intent?.data
-
         if (uri == null) {
             finish()
             return
         }
 
+        if (isPlayStoreLink(uri)) {
+            showSaveDialog(uri)
+        } else {
+            openInBrowser(uri)
+            finish()
+        }
+    }
+
+    private fun isPlayStoreLink(uri: Uri): Boolean {
+        val host = uri.host ?: ""
+        return uri.scheme == "market" ||
+            host == "play.google.com" ||
+            host == "market.android.com"
+    }
+
+    private fun showSaveDialog(uri: Uri) {
         AlertDialog.Builder(this)
             .setTitle("Сохранить ссылку?")
             .setMessage(uri.toString())
@@ -50,7 +66,32 @@ class LinkInterceptorActivity : AppCompatActivity() {
         try {
             startActivity(playStoreIntent)
         } catch (e: Exception) {
-            startActivity(Intent(Intent.ACTION_VIEW, uri))
+            openInBrowser(uri)
+        }
+    }
+
+    private fun openInBrowser(uri: Uri) {
+        val chromeIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage("com.android.chrome")
+        }
+        try {
+            startActivity(chromeIntent)
+            return
+        } catch (e: Exception) {
+            // Chrome не найден - ищем любой другой браузер, кроме себя самих
+        }
+
+        val genericIntent = Intent(Intent.ACTION_VIEW, uri)
+        val candidates = packageManager.queryIntentActivities(genericIntent, 0)
+        val other = candidates.firstOrNull { it.activityInfo.packageName != packageName }
+
+        if (other != null) {
+            val explicitIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+                setClassName(other.activityInfo.packageName, other.activityInfo.name)
+            }
+            startActivity(explicitIntent)
+        } else {
+            Toast.makeText(this, "Не найден браузер для этой ссылки", Toast.LENGTH_SHORT).show()
         }
     }
 }
