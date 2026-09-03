@@ -5,6 +5,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import java.io.File
@@ -13,6 +15,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var linksFile: File
     private lateinit var textView: TextView
+
+    private val pickFileLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) loadSortLinksFile(uri)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +29,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.shareButton).setOnClickListener {
             shareLinksFile()
+        }
+
+        findViewById<Button>(R.id.loadButton).setOnClickListener {
+            pickFileLauncher.launch("text/plain")
         }
     }
 
@@ -36,6 +46,19 @@ class MainActivity : AppCompatActivity() {
             linksFile.readText()
         } else {
             "Пока нет сохранённых ссылок."
+        }
+    }
+
+    private fun loadSortLinksFile(uri: Uri) {
+        try {
+            contentResolver.openInputStream(uri)?.use { input ->
+                val content = input.bufferedReader().readText()
+                File(filesDir, "sort_links.txt").writeText(content)
+                val count = content.lines().count { it.isNotBlank() }
+                Toast.makeText(this, "Загружено записей: $count", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Не удалось загрузить файл", Toast.LENGTH_SHORT).show()
         }
     }
 
