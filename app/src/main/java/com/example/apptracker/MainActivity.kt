@@ -12,22 +12,30 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
 
     private lateinit var linksFile: File
+    private lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         linksFile = File(filesDir, "saved_links.txt")
+        textView = findViewById(R.id.linksTextView)
 
-        val textView = findViewById<TextView>(R.id.linksTextView)
+        findViewById<Button>(R.id.shareButton).setOnClickListener {
+            shareLinksFile()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshList()
+    }
+
+    private fun refreshList() {
         textView.text = if (linksFile.exists() && linksFile.readText().isNotBlank()) {
             linksFile.readText()
         } else {
             "Пока нет сохранённых ссылок."
-        }
-
-        findViewById<Button>(R.id.shareButton).setOnClickListener {
-            shareLinksFile()
         }
     }
 
