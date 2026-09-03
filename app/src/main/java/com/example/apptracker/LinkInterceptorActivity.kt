@@ -6,11 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import java.io.File
 
-// Работает как "браузер по умолчанию": ловит вообще все ссылки http/https.
-// Если это ссылка на Play Market - спрашивает "сохранить?".
-// Если это любая другая ссылка (обычный сайт) - молча пересылает в настоящий браузер.
 class LinkInterceptorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,12 +34,14 @@ class LinkInterceptorActivity : AppCompatActivity() {
     }
 
     private fun showSaveDialog(uri: Uri) {
+        val cleanedLink = LinkUtils.cleanLink(uri.toString())
+
         AlertDialog.Builder(this)
             .setTitle("Сохранить ссылку?")
-            .setMessage(uri.toString())
+            .setMessage(cleanedLink)
             .setCancelable(false)
             .setPositiveButton("Да") { _, _ ->
-                saveLink(uri.toString())
+                LinkUtils.saveLink(this, cleanedLink)
                 Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show()
                 finish()
             }
@@ -52,11 +50,6 @@ class LinkInterceptorActivity : AppCompatActivity() {
                 finish()
             }
             .show()
-    }
-
-    private fun saveLink(link: String) {
-        val file = File(filesDir, "saved_links.txt")
-        file.appendText("$link\n")
     }
 
     private fun openInPlayStore(uri: Uri) {
