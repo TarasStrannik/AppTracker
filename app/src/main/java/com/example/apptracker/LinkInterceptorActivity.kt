@@ -9,6 +9,15 @@ import androidx.appcompat.app.AppCompatActivity
 
 class LinkInterceptorActivity : AppCompatActivity() {
 
+    private val playHosts = setOf(
+        "play.google.com",
+        "market.android.com",
+        "leagues.withgoogle.com",
+        "accounts.google.com",
+        "myaccount.google.com",
+        "my.play"
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -19,7 +28,7 @@ class LinkInterceptorActivity : AppCompatActivity() {
         }
 
         if (isPlayStoreLink(uri)) {
-            showSaveDialog(uri)
+            handlePlayStoreLink(uri)
         } else {
             openInBrowser(uri)
             finish()
@@ -28,14 +37,36 @@ class LinkInterceptorActivity : AppCompatActivity() {
 
     private fun isPlayStoreLink(uri: Uri): Boolean {
         val host = uri.host ?: ""
-        return uri.scheme == "market" ||
-            host == "play.google.com" ||
-            host == "market.android.com"
+        return uri.scheme == "market" || host in playHosts
     }
 
-    private fun showSaveDialog(uri: Uri) {
+    private fun handlePlayStoreLink(uri: Uri) {
         val cleanedLink = LinkUtils.cleanLink(uri.toString())
+        val id = LinkUtils.extractId(cleanedLink)
 
+        if (LinkUtils.isKnownId(this, id)) {
+            showAlreadyExistsDialog(uri, cleanedLink)
+        } else {
+            showSaveDialog(cleanedLink)
+        }
+    }
+
+    private fun showAlreadyExistsDialog(originalUri: Uri, cleanedLink: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Такая ссылка уже есть")
+            .setMessage(cleanedLink)
+            .setCancelable(false)
+            .setPositiveButton("Дальше") { _, _ ->
+                openInPlayStore(originalUri)
+                finish()
+            }
+            .setNegativeButton("Назад") { _, _ ->
+                finish()
+            }
+            .show()
+    }
+
+    private fun showSaveDialog(cleanedLink: String) {
         AlertDialog.Builder(this)
             .setTitle("Сохранить ссылку?")
             .setMessage(cleanedLink)
@@ -46,7 +77,6 @@ class LinkInterceptorActivity : AppCompatActivity() {
                 finish()
             }
             .setNegativeButton("Нет") { _, _ ->
-                openInPlayStore(uri)
                 finish()
             }
             .show()
