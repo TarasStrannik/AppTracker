@@ -24,31 +24,7 @@ class ShareReceiverActivity : AppCompatActivity() {
         }
 
         val cleanedLink = LinkUtils.cleanLink(sharedText)
-        val id = LinkUtils.extractId(cleanedLink)
 
-        if (LinkUtils.isKnownId(this, id)) {
-            showAlreadyExistsDialog(cleanedLink)
-        } else {
-            showSaveDialog(cleanedLink)
-        }
-    }
-
-    private fun showAlreadyExistsDialog(cleanedLink: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Такая ссылка уже есть")
-            .setMessage(cleanedLink)
-            .setCancelable(false)
-            .setPositiveButton("Дальше") { _, _ ->
-                openInPlayStore(cleanedLink)
-                finish()
-            }
-            .setNegativeButton("Назад") { _, _ ->
-                finish()
-            }
-            .show()
-    }
-
-    private fun showSaveDialog(cleanedLink: String) {
         AlertDialog.Builder(this)
             .setTitle("Сохранить ссылку?")
             .setMessage(cleanedLink)
@@ -59,6 +35,7 @@ class ShareReceiverActivity : AppCompatActivity() {
                 finish()
             }
             .setNegativeButton("Нет") { _, _ ->
+                openInPlayStore(cleanedLink)
                 finish()
             }
             .show()
