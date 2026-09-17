@@ -28,7 +28,7 @@ class LinkInterceptorActivity : AppCompatActivity() {
         }
 
         if (isPlayStoreLink(uri)) {
-            handlePlayStoreLink(uri)
+            showSaveDialog(uri)
         } else {
             openInBrowser(uri)
             finish()
@@ -40,33 +40,9 @@ class LinkInterceptorActivity : AppCompatActivity() {
         return uri.scheme == "market" || host in playHosts
     }
 
-    private fun handlePlayStoreLink(uri: Uri) {
+    private fun showSaveDialog(uri: Uri) {
         val cleanedLink = LinkUtils.cleanLink(uri.toString())
-        val id = LinkUtils.extractId(cleanedLink)
 
-        if (LinkUtils.isKnownId(this, id)) {
-            showAlreadyExistsDialog(uri, cleanedLink)
-        } else {
-            showSaveDialog(cleanedLink)
-        }
-    }
-
-    private fun showAlreadyExistsDialog(originalUri: Uri, cleanedLink: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Такая ссылка уже есть")
-            .setMessage(cleanedLink)
-            .setCancelable(false)
-            .setPositiveButton("Дальше") { _, _ ->
-                openInPlayStore(originalUri)
-                finish()
-            }
-            .setNegativeButton("Назад") { _, _ ->
-                finish()
-            }
-            .show()
-    }
-
-    private fun showSaveDialog(cleanedLink: String) {
         AlertDialog.Builder(this)
             .setTitle("Сохранить ссылку?")
             .setMessage(cleanedLink)
@@ -77,6 +53,7 @@ class LinkInterceptorActivity : AppCompatActivity() {
                 finish()
             }
             .setNegativeButton("Нет") { _, _ ->
+                openInPlayStore(uri)
                 finish()
             }
             .show()
